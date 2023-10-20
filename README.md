@@ -233,6 +233,7 @@ spec:
           requests:
             cpu: 5m
             memory: 32Mi
+      serviceAccount: rollouts-demo
 EOF
 ```
 
@@ -380,7 +381,6 @@ kubectl delete rollout rollouts-demo -n rollouts-demo
 kubectl delete serviceaccount rollouts-demo -n rollouts-demo
 kubectl delete service rollouts-demo-preview -n rollouts-demo
 kubectl delete service rollouts-demo-active -n rollouts-demo
-kubectl delete ns rollouts-demo
 ```
 
 # Canary Rollout Strategy
@@ -389,6 +389,12 @@ A Canary rollout is a deployment strategy where the operator releases a new vers
 First we can deploy the v1 of our rollouts demo which uses the `blue` image tag
 ```
 kubectl apply -f- <<EOF
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: rollouts-demo
+  namespace: rollouts-demo
+---
 apiVersion: v1
 kind: Service
 metadata:
@@ -447,6 +453,7 @@ spec:
           requests:
             cpu: 5m
             memory: 32Mi
+      serviceAccount: rollouts-demo
   strategy:
     canary:
       canaryService: rollouts-demo-canary
