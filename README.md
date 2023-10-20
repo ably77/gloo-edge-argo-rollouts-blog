@@ -98,7 +98,13 @@ time="2023-10-17T23:03:31Z" level=info msg="Started rollout workers"
 # Install Gloo Edge
 Install `glooctl` with brew:
 ```
+# with brew
 brew install glooctl
+
+# manually
+export GLOO_VERSION=v1.15.12
+curl -sL https://run.solo.io/gloo/install | sh
+export PATH=$HOME/.gloo/bin:$PATH
 ```
 
 Install Gloo Edge with `glooctl`:
@@ -108,6 +114,8 @@ glooctl install gateway --version 1.15.12 --create-namespace
 
 Install Gloo Edge with Helm
 ```
+helm repo add gloo https://storage.googleapis.com/solo-public-helm
+helm repo update
 helm upgrade --install gloo gloo/gloo --namespace gloo-system --version 1.15.12 --create-namespace
 ```
 
