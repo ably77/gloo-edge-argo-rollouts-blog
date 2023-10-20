@@ -569,7 +569,7 @@ EOF
 
 Now lets promote the image from the `blue` image tag to the `green` image tag and watch the traffic pattern in the UI
 ```
-kubectl argo rollouts set image rollouts-demo -n rollouts-demo-rollout rollouts-demo=argoproj/rollouts-demo:green
+kubectl argo rollouts set image rollouts-demo-rollout -n rollouts-demo rollouts-demo=argoproj/rollouts-demo:green
 ```
 
 This time, instead of immediately switching from blue to green, we will see a more gradual shift in traffic as defined in our rollout strategy
