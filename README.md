@@ -131,6 +131,25 @@ gloo-f445dd58b-8lszg                1/1     Running     0          48s
 gloo-resource-rollout-check-c45vn   0/1     Completed   0          47s
 ```
 
+You can even run `glooctl check`
+```
+% glooctl check
+Checking deployments... OK
+Checking pods... OK
+Checking upstreams... OK
+Checking upstream groups... OK
+Checking auth configs... OK
+Checking rate limit configs... OK
+Checking VirtualHostOptions... OK
+Checking RouteOptions... OK
+Checking secrets... OK
+Checking virtual services... OK
+Checking gateways... OK
+Checking proxies... OK
+No problems detected.
+Skipping Gloo Instance check -- Gloo Federation not detected
+```
+
 # Blue-green Rollout Strategy
 
 A Blue Green Deployment allows users to reduce the amount of time multiple versions running at the same time. This means that in a blue/green rollout that the traffic will be shifted from blue > green as soon as the green application is ready to take on traffic if `autoPromotionEnabled: true`. Additionally, a user can set the following [Configurable Features](https://argo-rollouts.readthedocs.io/en/stable/features/bluegreen/#configurable-features) listed on the upstream docs such as `autoPromotionSeconds: 20` for example
