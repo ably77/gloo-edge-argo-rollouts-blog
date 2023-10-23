@@ -680,7 +680,7 @@ metadata:
 spec:
   metrics:
   - name: always-fail
-    count: 1
+    count: 2
     interval: 5s
     failureLimit: 1
     provider:
@@ -762,21 +762,24 @@ Now let's repeat the experiment and change the image again to another color such
 kubectl argo rollouts set image rollouts-demo-rollout -n rollouts-demo rollouts-demo=argoproj/rollouts-demo:yellow
 ```
 
-If you check the rollout status again, this time we will see the added `AnalysisRun` step shows that it was `✔ Successful`
+If you check the rollout status again, this time we will see the added `AnalysisRun` step shows that it was `✔ Successful` which means that during the rollout the analysis was triggered and passed
 ```
 kubectl argo rollouts get rollout rollouts-demo-rollout -n rollouts-demo
 ```
 
 ## Bonus exercises
-Try it again, but this time use the `always-fail` AnalysisTemplate to observe a rollback operation
+Try it again, but this time use the `always-fail` AnalysisTemplate to observe a rollback operation. Note that by using `startingStep: 3` that the `always-fail` analysistemplate will be run as step 3 starts begins, and then will roll back.
 ```
 analysis:
   templates:
   - templateName: always-fail
-  startingStep: 1
+  startingStep: 3
 ```
 
-It is possible to nest an `analysis` step inside of a `setWeight` step such as in the example below where analysis runs happen on steps 10% and 50%
+You can visualize the rollout and rollback in the UI
+![rollouts-ui-rollback](.images/rollouts-ui-rollback.png)
+
+Note that it is possible to nest an `analysis` step inside of a `setWeight` step such as in the example below where analysis runs happen on steps 10% and 50%. Doing so will allow you to add additional config such as `args` to your analysis
 ```
 steps:
 - setWeight: 10
