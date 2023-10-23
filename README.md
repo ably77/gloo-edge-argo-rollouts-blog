@@ -237,31 +237,9 @@ spec:
 EOF
 ```
 
-Check your rollout status:
+Check to see if the rollout has been deployed:
 ```
-kubectl argo rollouts get rollout rollouts-demo -n rollouts-demo
-```
-
-Example output below:
-```
-% kubectl argo rollouts get rollout rollouts-demo -n rollouts-demo
-Name:            rollouts-demo
-Namespace:       rollouts-demo
-Status:          ✔ Healthy
-Strategy:        BlueGreen
-Images:          argoproj/rollouts-demo:blue (stable, active)
-Replicas:
-  Desired:       1
-  Current:       1
-  Updated:       1
-  Ready:         1
-  Available:     1
-
-NAME                                       KIND        STATUS     AGE  INFO
-⟳ rollouts-demo                            Rollout     ✔ Healthy  22s  
-└──# revision:1                                                        
-   └──⧉ rollouts-demo-6ccb95ffd5           ReplicaSet  ✔ Healthy  22s  stable,active
-      └──□ rollouts-demo-6ccb95ffd5-g2xtn  Pod         ✔ Running  22s  ready:1/1```
+kubectl get rollouts -n rollouts-demo
 ```
 
 Now we can expose the rollout demo UI using Gloo Edge:
@@ -320,6 +298,35 @@ open $(glooctl proxy url)
 
 We should see the Argo Rollouts Demo with blue squares loading across the screen
 ![rollouts-ui-blue](.images/rollouts-ui-blue.png)
+
+## Promoting from blue to green
+
+Check your rollout status:
+```
+kubectl argo rollouts get rollout rollouts-demo -n rollouts-demo
+```
+
+Example output below:
+```
+% kubectl argo rollouts get rollout rollouts-demo -n rollouts-demo
+Name:            rollouts-demo
+Namespace:       rollouts-demo
+Status:          ✔ Healthy
+Strategy:        BlueGreen
+Images:          argoproj/rollouts-demo:blue (stable, active)
+Replicas:
+  Desired:       1
+  Current:       1
+  Updated:       1
+  Ready:         1
+  Available:     1
+
+NAME                                       KIND        STATUS     AGE  INFO
+⟳ rollouts-demo                            Rollout     ✔ Healthy  22s  
+└──# revision:1                                                        
+   └──⧉ rollouts-demo-6ccb95ffd5           ReplicaSet  ✔ Healthy  22s  stable,active
+      └──□ rollouts-demo-6ccb95ffd5-g2xtn  Pod         ✔ Running  22s  ready:1/1```
+```
 
 Now we can promote the image from the `blue` image tag to the `green` image tag
 ```
