@@ -635,5 +635,167 @@ kubectl argo rollouts promote rollouts-demo-rollout -n rollouts-demo
 In the rollouts demo UI we should be able to see that the rollout pauses at the 25% weight until promoted, with the rest of the rollout automatically promoted after a 5 second duration between steps.
 ![rollouts-ui-canary-with-man](.images/rollouts-ui-canary-with-man.png)
 
+## Analysis Runs
+As a part of the `Rollout`, analysis can be run in the background -- while the canary is progressing through its rollout steps.
+
+An AnalysisTemplate is a template spec which defines how to perform a canary analysis, such as the metrics which it should perform, its frequency, and the values which are considered successful or failed. AnalysisTemplates may be parameterized with inputs values.
+
+
+Here are two very simple `AnalysisTemplate` examples to mimic two behaviors `pass` and `always-fail`
+```
+kubectl apply -f- <<EOF
+# This AnalysisTemplate will run a Kubernetes Job every 5 seconds that succeeds.
+kind: AnalysisTemplate
+apiVersion: argoproj.io/v1alpha1
+metadata:
+  name: pass
+  namespace: rollouts-demo
+spec:
+  metrics:
+  - name: pass
+    count: 1
+    interval: 5s
+    failureLimit: 1
+    provider:
+      job:
+        spec:
+          template:
+            spec:
+              containers:
+              - name: sleep
+                image: alpine:3.8
+                command: [sh, -c]
+                args: [exit 0]
+              restartPolicy: Never
+          backoffLimit: 0
+---
+# This AnalysisTemplate will run a Kubernetes Job every 5 seconds, with a 50% chance of failure.
+# When the number of accumulated failures exceeds failureLimit, it will cause the analysis run to
+# fail, and subsequently cause the rollout or experiment to abort.
+kind: AnalysisTemplate
+apiVersion: argoproj.io/v1alpha1
+metadata:
+  name: always-fail
+  namespace: rollouts-demo
+spec:
+  metrics:
+  - name: always-fail
+    count: 1
+    interval: 5s
+    failureLimit: 1
+    provider:
+      job:
+        spec:
+          template:
+            spec:
+              containers:
+              - name: sleep
+                image: alpine:3.8
+                command: [exit 0]
+                args: [exit 0]
+              restartPolicy: Never
+          backoffLimit: 0
+EOF
+```
+
+Now we can add an `strategy.canary.steps.analysis` config to our `Rollout`
+```
+kubectl apply -f- <<EOF
+apiVersion: argoproj.io/v1alpha1
+kind: Rollout
+metadata:
+  name: rollouts-demo-rollout
+  namespace: rollouts-demo
+spec:
+  selector:
+    matchLabels:
+      app: rollouts-demo
+  template:
+    metadata:
+      labels:
+        app: rollouts-demo
+    spec:
+      containers:
+      - name: rollouts-demo
+        image: argoproj/rollouts-demo:blue
+        imagePullPolicy: IfNotPresent
+        ports:
+        - name: http
+          containerPort: 8080
+          protocol: TCP
+        resources:
+          requests:
+            cpu: 5m
+            memory: 32Mi
+      serviceAccount: rollouts-demo
+  strategy:
+    canary:
+      canaryService: rollouts-demo-canary
+      stableService: rollouts-demo-stable
+      trafficRouting:
+        plugins:
+          solo-io/glooedge:
+            routeTable:
+              name: rollouts-demo-routes
+              namespace: rollouts-demo
+      steps:
+        - setWeight: 10
+        - pause: {duration: 5}
+        - setWeight: 25
+        - pause: {duration: 5}
+        - setWeight: 50
+        - pause: {duration: 5}
+        - setWeight: 75
+        - pause: {duration: 5}
+        - setWeight: 100
+        - pause: {duration: 5}
+      analysis:
+        templates:
+        - templateName: pass
+        #- templateName: always-fail
+        startingStep: 1
+EOF
+```
+
+Now let's repeat the experiment and change the image again to another color such as back to blue, or even yellow
+```
+kubectl argo rollouts set image rollouts-demo-rollout -n rollouts-demo rollouts-demo=argoproj/rollouts-demo:yellow
+```
+
+If you check the rollout status again, this time we will see the added `AnalysisRun` step shows that it was `✔ Successful`
+```
+kubectl argo rollouts get rollout rollouts-demo-rollout -n rollouts-demo
+```
+
+## Bonus exercises
+Try it again, but this time use the `always-fail` AnalysisTemplate to observe a rollback operation
+```
+analysis:
+  templates:
+  - templateName: always-fail
+  startingStep: 1
+```
+
+It is possible to nest an `analysis` step inside of a `setWeight` step such as in the example below where analysis runs happen on steps 10% and 50%
+```
+steps:
+- setWeight: 10
+- pause: {duration: 60}
+- analysis:
+    templates:
+    - templateName: pass
+- setWeight: 25
+- pause: {duration: 60}
+- setWeight: 50
+- pause: {duration: 60}
+- analysis:
+    templates:
+    - templateName: pass
+- setWeight: 75
+- pause: {duration: 60}
+- setWeight: 100
+- pause: {duration: 60}
+```
+
 ## Conclusion
 This tutorial demonstrates the ease of integrating progressive delivery workflows to your application deployments using Argo Rollouts and Gloo Edge but only scratches the surface! Many standard options exist in the Argo Rollouts Documentation such as [BlueGreen Deployment Strategy](https://argo-rollouts.readthedocs.io/en/stable/features/bluegreen/) and [Canary Strategy](https://argo-rollouts.readthedocs.io/en/stable/features/canary/). Take a look at other strategies and routing examples in the plugin [github repo examples](https://github.com/argoproj-labs/rollouts-plugin-trafficrouter-glooedge/tree/main/examples) for more examples to get you started!
