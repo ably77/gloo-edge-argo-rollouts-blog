@@ -399,6 +399,11 @@ First we can deploy the v1 of our rollouts demo which uses the `blue` image tag
 ```
 kubectl apply -f- <<EOF
 apiVersion: v1
+kind: Namespace
+metadata:
+  name: rollouts-demo
+---
+apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: rollouts-demo
