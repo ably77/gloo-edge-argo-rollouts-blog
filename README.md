@@ -102,21 +102,21 @@ Install `glooctl` with brew:
 brew install glooctl
 
 # manually
-export GLOO_VERSION=v1.15.12
+export GLOO_VERSION=v1.15.14
 curl -sL https://run.solo.io/gloo/install | sh
 export PATH=$HOME/.gloo/bin:$PATH
 ```
 
 Install Gloo Edge with `glooctl`:
 ```
-glooctl install gateway --version 1.15.12 --create-namespace
+glooctl install gateway --version 1.15.14 --create-namespace
 ```
 
 Install Gloo Edge with Helm
 ```
 helm repo add gloo https://storage.googleapis.com/solo-public-helm
 helm repo update
-helm upgrade --install gloo gloo/gloo --namespace gloo-system --version 1.15.12 --create-namespace
+helm upgrade --install gloo gloo/gloo --namespace gloo-system --version 1.15.14 --create-namespace
 ```
 
 Check to see if Gloo Edge has been deployed
