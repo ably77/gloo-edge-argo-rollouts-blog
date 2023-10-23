@@ -1,5 +1,7 @@
-# Install the argo-rollouts controller
-Install the kubectl argo-rollouts plugin as described [here](https://argoproj.github.io/argo-rollouts/installation/#kubectl-plugin-installation)
+# Getting Started with Gloo Edge and Argo Rollouts
+
+## Install the argo-rollouts controller
+Install the kubectl argo-rollouts plugin as described [here](https://argoproj.github.io/argo-rollouts/installation/##kubectl-plugin-installation)
 
 Instructions for brew
 ```
@@ -95,13 +97,13 @@ time="2023-10-17T23:03:31Z" level=info msg="Starting Rollout workers"
 time="2023-10-17T23:03:31Z" level=info msg="Started rollout workers"
 ```
 
-# Install Gloo Edge
+## Install Gloo Edge
 Install `glooctl` with brew:
 ```
-# with brew
+## with brew
 brew install glooctl
 
-# manually
+## manually
 export GLOO_VERSION=v1.15.14
 curl -sL https://run.solo.io/gloo/install | sh
 export PATH=$HOME/.gloo/bin:$PATH
@@ -150,9 +152,9 @@ No problems detected.
 Skipping Gloo Instance check -- Gloo Federation not detected
 ```
 
-# Blue-green Rollout Strategy
+## Blue-green Rollout Strategy
 
-A Blue Green Deployment allows users to reduce the amount of time multiple versions running at the same time. This means that in a blue/green rollout that the traffic will be shifted from blue > green as soon as the green application is ready to take on traffic if `autoPromotionEnabled: true`. Additionally, a user can set the following [Configurable Features](https://argo-rollouts.readthedocs.io/en/stable/features/bluegreen/#configurable-features) listed on the upstream docs such as `autoPromotionSeconds: 20` for example
+A Blue Green Deployment allows users to reduce the amount of time multiple versions running at the same time. This means that in a blue/green rollout that the traffic will be shifted from blue > green as soon as the green application is ready to take on traffic if `autoPromotionEnabled: true`. Additionally, a user can set the following [Configurable Features](https://argo-rollouts.readthedocs.io/en/stable/features/bluegreen/##configurable-features) listed on the upstream docs such as `autoPromotionSeconds: 20` for example
 
 Deploy the rollouts-demo application. The following rollout has `autoPromotionEnabled: false` to demonstrate a manual promotion process
 ```
@@ -299,7 +301,7 @@ open $(glooctl proxy url)
 We should see the Argo Rollouts Demo with blue squares loading across the screen
 ![rollouts-ui-blue](.images/rollouts-ui-blue.png)
 
-## Promoting from blue to green
+#### Promoting from blue to green
 
 Check your rollout status:
 ```
@@ -323,7 +325,7 @@ Replicas:
 
 NAME                                       KIND        STATUS     AGE  INFO
 ⟳ rollouts-demo                            Rollout     ✔ Healthy  22s  
-└──# revision:1                                                        
+└──## revision:1                                                        
    └──⧉ rollouts-demo-6ccb95ffd5           ReplicaSet  ✔ Healthy  22s  stable,active
       └──□ rollouts-demo-6ccb95ffd5-g2xtn  Pod         ✔ Running  22s  ready:1/1```
 ```
@@ -352,10 +354,10 @@ Replicas:
 
 NAME                                       KIND        STATUS     AGE    INFO
 ⟳ rollouts-demo                            Rollout     ॥ Paused   15m    
-├──# revision:4                                                          
+├──## revision:4                                                          
 │  └──⧉ rollouts-demo-5b8f48f456           ReplicaSet  ✔ Healthy  11m    preview
 │     └──□ rollouts-demo-5b8f48f456-hsnc5  Pod         ✔ Running  36s    ready:1/1
-└──# revision:3                                                          
+└──## revision:3                                                          
    └──⧉ rollouts-demo-6ccb95ffd5           ReplicaSet  ✔ Healthy  15m    stable,active
       └──□ rollouts-demo-6ccb95ffd5-r9wjk  Pod         ✔ Running  9m57s  ready:1/1
 ```
@@ -368,7 +370,7 @@ kubectl argo rollouts promote rollouts-demo -n rollouts-demo
 We should quickly see in the UI that traffic was shifted immediately from blue to green
 ![rollouts-ui-blue-green](.images/rollouts-ui-blue-green.png)
 
-# Bonus:
+## Bonus:
 If you set the Rollout strategy as follows, the promotion will happen automatically 20 seconds after the pod is marked healthy
 ```
 strategy:
@@ -379,7 +381,7 @@ strategy:
     autoPromotionSeconds: 20
 ```
 
-# Cleanup blue/green rollouts demo
+## Cleanup blue/green rollouts demo
 ```
 kubectl delete vs rollouts-demo -n gloo-system
 kubectl delete upstream rollouts-demo-preview -n rollouts-demo
@@ -390,7 +392,7 @@ kubectl delete service rollouts-demo-preview -n rollouts-demo
 kubectl delete service rollouts-demo-active -n rollouts-demo
 ```
 
-# Canary Rollout Strategy
+## Canary Rollout Strategy
 A Canary rollout is a deployment strategy where the operator releases a new version of their application to a small percentage of the production traffic. We can use weights, pause durations, and manual promotion in order to control how our application is rolled out across the stable and canary services
 
 First we can deploy the v1 of our rollouts demo which uses the `blue` image tag
@@ -510,7 +512,7 @@ Replicas:
 
 NAME                                              KIND        STATUS     AGE  INFO
 ⟳ rollouts-demo-rollout                           Rollout     ✔ Healthy  86s  
-└──# revision:1                                                               
+└──## revision:1                                                               
    └──⧉ rollouts-demo-rollout-f7c568d5d           ReplicaSet  ✔ Healthy  86s  stable
       └──□ rollouts-demo-rollout-f7c568d5d-dv8fd  Pod         ✔ Running  86s  ready:1/1
 ```
@@ -604,7 +606,7 @@ steps:
 In the rollouts demo UI we should be able to see the steps and the respective weights pretty clearly in the shift from blue to green.
 ![rollouts-ui-canary](.images/rollouts-ui-canary.png)
 
-# Bonus:
+## Bonus:
 If you set the Rollout strategy steps as follows, the promotion will happen automatically every 5 seconds except for the second step (at 25%) which requires a manual promotion
 ```
 steps:
@@ -628,5 +630,5 @@ kubectl argo rollouts promote rollouts-demo-rollout -n rollouts-demo
 In the rollouts demo UI we should be able to see that the rollout pauses at the 25% weight until promoted, with the rest of the rollout automatically promoted after a 5 second duration between steps.
 ![rollouts-ui-canary-with-man](.images/rollouts-ui-canary-with-man.png)
 
-# Conclusion
+## Conclusion
 This tutorial demonstrates the ease of integrating progressive delivery workflows to your application deployments using Argo Rollouts and Gloo Edge but only scratches the surface! Many standard options exist in the Argo Rollouts Documentation such as [BlueGreen Deployment Strategy](https://argo-rollouts.readthedocs.io/en/stable/features/bluegreen/) and [Canary Strategy](https://argo-rollouts.readthedocs.io/en/stable/features/canary/). Take a look at other strategies and routing examples in the plugin [github repo examples](https://github.com/argoproj-labs/rollouts-plugin-trafficrouter-glooedge/tree/main/examples) for more examples to get you started!
