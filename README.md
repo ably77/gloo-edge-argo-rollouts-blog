@@ -156,6 +156,8 @@ Skipping Gloo Instance check -- Gloo Federation not detected
 
 A Blue Green Deployment allows users to reduce the amount of time multiple versions running at the same time. This means that in a blue/green rollout that the traffic will be shifted from blue > green as soon as the green application is ready to take on traffic if `autoPromotionEnabled: true`. Additionally, a user can set the following [Configurable Features](https://argo-rollouts.readthedocs.io/en/stable/features/bluegreen/##configurable-features) listed on the upstream docs such as `autoPromotionSeconds: 20` for example
 
+Something to note about this strategy is that besides providing connectivity from the gateway to the application, there is no traffic shifting happening from the gateway perspective moving from blue > green. The example below uses the default Argo Rollouts blue/green strategy which controls K8s services, and not Gloo Edge routes. See [Sequence of Events](https://argo-rollouts.readthedocs.io/en/stable/features/bluegreen/#sequence-of-events) for more details on this strategy.
+
 Deploy the rollouts-demo application. The following rollout has `autoPromotionEnabled: false` to demonstrate a manual promotion process
 ```
 kubectl apply -f- <<EOF
@@ -257,19 +259,6 @@ spec:
     selector:
       app: rollouts-demo
     serviceName: rollouts-demo-active
-    serviceNamespace: rollouts-demo
-    servicePort: 8080
----
-apiVersion: gloo.solo.io/v1
-kind: Upstream
-metadata:
-  name: rollouts-demo-preview
-  namespace: rollouts-demo
-spec:
-  kube:
-    selector:
-      app: rollouts-demo
-    serviceName: rollouts-demo-preview
     serviceNamespace: rollouts-demo
     servicePort: 8080
 ---
@@ -384,7 +373,6 @@ strategy:
 ## Cleanup blue/green rollouts demo
 ```
 kubectl delete vs rollouts-demo -n gloo-system
-kubectl delete upstream rollouts-demo-preview -n rollouts-demo
 kubectl delete upstream rollouts-demo-active -n rollouts-demo
 kubectl delete rollout rollouts-demo -n rollouts-demo
 kubectl delete serviceaccount rollouts-demo -n rollouts-demo
