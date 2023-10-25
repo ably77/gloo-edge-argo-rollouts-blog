@@ -383,7 +383,21 @@ kubectl delete service rollouts-demo-active -n rollouts-demo
 ## Canary Rollout Strategy
 A Canary rollout is a deployment strategy where the operator releases a new version of their application to a small percentage of the production traffic. We can use weights, pause durations, and manual promotion in order to control how our application is rolled out across the stable and canary services
 
-First we can deploy the v1 of our rollouts demo which uses the `blue` image tag
+Similar to the above Blue/Green strategy, the Argo Rollouts Canary strategy supports the K8s API directly [basic example here](https://argo-rollouts.readthedocs.io/en/stable/features/canary/#example), as well as many examples of integrations for [Traffic Management](https://argo-rollouts.readthedocs.io/en/stable/features/traffic-management/) that allow more advanced rollout scenarios.
+
+The example below uses the Canary strategy, implemented by the Gloo Edge Argo Rollouts Plugin. This plugin allows Argo Rollouts to manage Gloo Edge objects such as `Upstream`, `VirtualService`, and `RouteTable`
+
+In the `Rollout` config, we will configure the plugin integration with Gloo Edge by defining a `trafficRouting.plugin.solo-io/glooedge`
+```
+trafficRouting:
+  plugins:
+    solo-io/glooedge:
+      routeTable:
+        name: rollouts-demo-routes
+        namespace: rollouts-demo
+```
+
+To get started, first we can deploy the v1 of our rollouts demo which uses the `blue` image tag
 ```
 kubectl apply -f- <<EOF
 apiVersion: v1
