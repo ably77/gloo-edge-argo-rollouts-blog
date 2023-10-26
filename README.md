@@ -507,7 +507,7 @@ spec:
 apiVersion: argoproj.io/v1alpha1
 kind: Rollout
 metadata:
-  name: rollouts-demo-rollout
+  name: rollouts-demo
   namespace: rollouts-demo
 spec:
   selector:
@@ -713,7 +713,7 @@ kubectl apply -f- <<EOF
 apiVersion: argoproj.io/v1alpha1
 kind: Rollout
 metadata:
-  name: rollouts-demo-rollout
+  name: rollouts-demo
   namespace: rollouts-demo
 spec:
   selector:
