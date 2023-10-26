@@ -557,13 +557,13 @@ EOF
 
 Check your rollout status:
 ```
-kubectl argo rollouts get rollout rollouts-demo-rollout -n rollouts-demo
+kubectl argo rollouts get rollout rollouts-demo -n rollouts-demo
 ```
 
 Output should look similar to below:
 ```
-% kubectl argo rollouts get rollout rollouts-demo-rollout -n rollouts-demo
-Name:            rollouts-demo-rollout
+% kubectl argo rollouts get rollout rollouts-demo -n rollouts-demo
+Name:            rollouts-demo
 Namespace:       rollouts-demo
 Status:          ✔ Healthy
 Strategy:        Canary
@@ -579,15 +579,15 @@ Replicas:
   Available:     1
 
 NAME                                              KIND        STATUS     AGE  INFO
-⟳ rollouts-demo-rollout                           Rollout     ✔ Healthy  86s  
+⟳ rollouts-demo                           Rollout     ✔ Healthy  86s  
 └──## revision:1                                                               
-   └──⧉ rollouts-demo-rollout-f7c568d5d           ReplicaSet  ✔ Healthy  86s  stable
-      └──□ rollouts-demo-rollout-f7c568d5d-dv8fd  Pod         ✔ Running  86s  ready:1/1
+   └──⧉ rollouts-demo-f7c568d5d           ReplicaSet  ✔ Healthy  86s  stable
+      └──□ rollouts-demo-f7c568d5d-dv8fd  Pod         ✔ Running  86s  ready:1/1
 ```
 
 Now lets promote the image from the `blue` image tag to the `green` image tag and watch the traffic pattern in the UI
 ```
-kubectl argo rollouts set image rollouts-demo-rollout -n rollouts-demo rollouts-demo=argoproj/rollouts-demo:green
+kubectl argo rollouts set image rollouts-demo -n rollouts-demo rollouts-demo=argoproj/rollouts-demo:green
 ```
 
 This time, instead of immediately switching from blue to green, we will see a more gradual shift in traffic as defined in our rollout strategy
@@ -626,7 +626,7 @@ steps:
 
 Run the following command to promote the rollout:
 ```
-kubectl argo rollouts promote rollouts-demo-rollout -n rollouts-demo
+kubectl argo rollouts promote rollouts-demo -n rollouts-demo
 ```
 
 In the rollouts demo UI we should be able to see that the rollout pauses at the 25% weight until promoted, with the rest of the rollout automatically promoted after a 5 second duration between steps.
@@ -768,12 +768,12 @@ EOF
 
 Now let's repeat the experiment and change the image again to another color such as back to blue, or even yellow
 ```
-kubectl argo rollouts set image rollouts-demo-rollout -n rollouts-demo rollouts-demo=argoproj/rollouts-demo:yellow
+kubectl argo rollouts set image rollouts-demo -n rollouts-demo rollouts-demo=argoproj/rollouts-demo:yellow
 ```
 
 If you check the rollout status again, this time we will see the added `AnalysisRun` step shows that it was `✔ Successful` which means that during the rollout the analysis was triggered and passed
 ```
-kubectl argo rollouts get rollout rollouts-demo-rollout -n rollouts-demo
+kubectl argo rollouts get rollout rollouts-demo -n rollouts-demo
 ```
 
 ## Bonus exercises
