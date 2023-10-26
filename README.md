@@ -158,6 +158,13 @@ A Blue Green Deployment allows users to reduce the amount of time multiple versi
 
 Something to note about this strategy is that besides providing connectivity from the gateway to the application, there is no traffic shifting happening from the gateway perspective moving from blue > green. The example below uses the default Argo Rollouts blue/green strategy which controls K8s services, and not Gloo Edge routes. See [Sequence of Events](https://argo-rollouts.readthedocs.io/en/stable/features/bluegreen/#sequence-of-events) for more details on this strategy.
 
+### Blue-green Rollout Diagram
+![blue-green-initial-deploy](.images/blue-green-initial-deploy.png)
+
+![blue-green-pre-promotion](.images/blue-green-pre-promotion.png)
+
+![blue-green-post-promotion](.images/blue-green-post-promotion.png)
+
 Deploy the rollouts-demo application. The following rollout has `autoPromotionEnabled: false` to demonstrate a manual promotion process
 ```
 kubectl apply -f- <<EOF
@@ -396,6 +403,13 @@ trafficRouting:
         name: rollouts-demo-routes
         namespace: rollouts-demo
 ```
+
+### Canary Rollout Diagram
+![canary-initial-deploy](.images/canary-initial-deploy.png)
+
+![canary-pre-promotion](.images/canary-pre-promotion.png)
+
+![canary-post-promotion](.images/canary-post-promotion.png)
 
 To get started, first we can deploy the v1 of our rollouts demo which uses the `blue` image tag
 ```
