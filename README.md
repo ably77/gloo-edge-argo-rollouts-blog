@@ -414,7 +414,7 @@ metadata:
 apiVersion: v1
 kind: Service
 metadata:
-  name: rollouts-demo-stable
+  name: rollouts-demo-active
   namespace: rollouts-demo
   labels:
     app: rollouts-demo
@@ -430,7 +430,7 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: rollouts-demo-canary
+  name: rollouts-demo-preview
   namespace: rollouts-demo
   labels:
     app: rollouts-demo
@@ -442,6 +442,67 @@ spec:
     targetPort: 8080
   selector:
     app: rollouts-demo
+---
+apiVersion: gloo.solo.io/v1
+kind: Upstream
+metadata:
+  name: rollouts-demo-active
+  namespace: rollouts-demo 
+spec:
+  kube:
+    selector:
+      app: rollouts-demo
+    serviceName: rollouts-demo-active
+    serviceNamespace: rollouts-demo
+    servicePort: 8080
+---
+apiVersion: gloo.solo.io/v1
+kind: Upstream
+metadata:
+  name: rollouts-demo-preview
+  namespace: rollouts-demo
+spec:
+  kube:
+    selector:
+      app: rollouts-demo
+    serviceName: rollouts-demo-preview
+    serviceNamespace: rollouts-demo
+    servicePort: 8080
+---
+apiVersion: gateway.solo.io/v1
+kind: VirtualService
+metadata:
+  name: rollouts-demo
+  namespace: gloo-system
+spec:
+  virtualHost:
+    domains:
+    - '*'
+    routes:
+    - matchers:
+      - prefix: /
+      delegateAction:
+        ref:
+          name: rollouts-demo-routes
+          namespace: gloo-system
+---
+apiVersion: gateway.solo.io/v1
+kind: RouteTable
+metadata:
+  name: rollouts-demo-routes
+  namespace: gloo-system
+spec:
+  routes:
+    - matchers:
+      - prefix: /
+      routeAction:
+        multi:
+          destinations:
+          - destination:
+              upstream:
+                name: rollouts-demo-active
+                namespace: rollouts-demo
+            weight: 100
 ---
 apiVersion: argoproj.io/v1alpha1
 kind: Rollout
@@ -472,14 +533,14 @@ spec:
       serviceAccount: rollouts-demo
   strategy:
     canary:
-      canaryService: rollouts-demo-canary
-      stableService: rollouts-demo-stable
+      stableService: rollouts-demo-active
+      canaryService: rollouts-demo-preview
       trafficRouting:
         plugins:
           solo-io/glooedge:
             routeTable:
               name: rollouts-demo-routes
-              namespace: rollouts-demo
+              namespace: gloo-system
       steps:
         - setWeight: 10
         - pause: {duration: 5}
@@ -522,72 +583,6 @@ NAME                                              KIND        STATUS     AGE  IN
 └──## revision:1                                                               
    └──⧉ rollouts-demo-rollout-f7c568d5d           ReplicaSet  ✔ Healthy  86s  stable
       └──□ rollouts-demo-rollout-f7c568d5d-dv8fd  Pod         ✔ Running  86s  ready:1/1
-```
-
-Now we can expose the rollout demo UI using Gloo Edge:
-```
-kubectl apply -f- <<EOF
-apiVersion: gloo.solo.io/v1
-kind: Upstream
-metadata:
-  name: rollouts-demo-stable
-  namespace: rollouts-demo 
-spec:
-  kube:
-    selector:
-      app: rollouts-demo
-    serviceName: rollouts-demo-stable
-    serviceNamespace: rollouts-demo
-    servicePort: 8080
----
-apiVersion: gloo.solo.io/v1
-kind: Upstream
-metadata:
-  name: rollouts-demo-canary
-  namespace: rollouts-demo
-spec:
-  kube:
-    selector:
-      app: rollouts-demo
-    serviceName: rollouts-demo-canary
-    serviceNamespace: rollouts-demo
-    servicePort: 8080
----
-apiVersion: gateway.solo.io/v1
-kind: VirtualService
-metadata:
-  name: rollouts-demo
-  namespace: gloo-system
-spec:
-  virtualHost:
-    domains:
-    - '*'
-    routes:
-    - matchers:
-      - prefix: /
-      delegateAction:
-        ref:
-          name: rollouts-demo-routes
-          namespace: rollouts-demo
----
-apiVersion: gateway.solo.io/v1
-kind: RouteTable
-metadata:
-  name: rollouts-demo-routes
-  namespace: rollouts-demo
-spec:
-  routes:
-    - matchers:
-      - prefix: /
-      routeAction:
-        multi:
-          destinations:
-          - destination:
-              upstream:
-                name: rollouts-demo-stable
-                namespace: rollouts-demo
-            weight: 100
-EOF
 ```
 
 Now lets promote the image from the `blue` image tag to the `green` image tag and watch the traffic pattern in the UI
@@ -636,6 +631,18 @@ kubectl argo rollouts promote rollouts-demo-rollout -n rollouts-demo
 
 In the rollouts demo UI we should be able to see that the rollout pauses at the 25% weight until promoted, with the rest of the rollout automatically promoted after a 5 second duration between steps.
 ![rollouts-ui-canary-with-man](.images/rollouts-ui-canary-with-man.png)
+
+## Cleanup Canary rollouts demo
+```
+kubectl delete serviceaccount rollouts-demo -n rollouts-demo
+kubectl delete service rollouts-demo-preview -n rollouts-demo
+kubectl delete service rollouts-demo-active -n rollouts-demo
+kubectl delete upstream rollouts-demo-active -n rollouts-demo
+kubectl delete upstream rollouts-demo-preview -n rollouts-demo
+kubectl delete rollout rollouts-demo -n rollouts-demo
+kubectl delete vs rollouts-demo -n gloo-system
+kubectl delete rt rollouts-demo-routes -n gloo-system
+```
 
 ## Analysis Runs
 As a part of the `Rollout`, analysis can be run in the background -- while the canary is progressing through its rollout steps.
