@@ -1,5 +1,10 @@
 # Getting Started with Gloo Edge and Argo Rollouts
 
+## Introduction
+In modern software development, the ability to deploy applications swiftly and seamlessly is an important competitive advantage. This is where Argo Rollouts truly shines. By harnessing the power of Argo Rollouts, organizations can ensure a smooth and controlled transition from one version of an application to the next, minimizing downtime and reducing the risk of disruptions. This level of precision not only enhances the end-user experience but also bolsters an organization's reliability and reputation. Furthermore, Argo Rollouts empowers teams to adopt advanced deployment strategies like canary releases and blue-green deployments, allowing for safe experimentation with new features and configurations. The result? Faster innovation cycles, higher customer satisfaction, and ultimately, a stronger market position for the organization.
+
+At Solo.io, we've integrated Argo Rollouts' traffic management capabilities with Gloo Edge's advanced routing mechanisms through a supported plugin. This integration is a testament to our dedication to empowering organizations with the tools they need to succeed in the ever-evolving landscape of Kubernetes deployments. This blog provides a comprehensive guide on how to install, use, and implement various patterns for progressive delivery using Argo Rollouts and Gloo Edge.
+ 
 ## Install the argo-rollouts controller
 Install the kubectl argo-rollouts plugin as described [here](https://argoproj.github.io/argo-rollouts/installation/##kubectl-plugin-installation)
 
