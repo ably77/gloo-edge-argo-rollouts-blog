@@ -610,6 +610,7 @@ NAME                                              KIND        STATUS     AGE  IN
       └──□ rollouts-demo-f7c568d5d-dv8fd  Pod         ✔ Running  86s  ready:1/1
 ```
 
+### Initiating a new Rollout
 Now lets promote the image from the `blue` image tag to the `green` image tag and watch the traffic pattern in the UI
 ```
 kubectl argo rollouts set image rollouts-demo -n rollouts-demo rollouts-demo=argoproj/rollouts-demo:green
