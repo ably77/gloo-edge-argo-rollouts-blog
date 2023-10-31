@@ -638,6 +638,13 @@ steps:
 - pause: {duration: 5}
 ```
 
+When doing so, you can also run a `-w` watch command on the following resources to visualize the config changes being managed by the Rollouts controller which are described in the diagrams at the top of this section
+```
+kubectl get svc rollouts-demo-active -n rollouts-demo -oyaml -w
+kubectl get svc rollouts-demo-preview -n rollouts-demo -oyaml -w
+kubectl get routetable rollouts-demo-routes -n gloo-system -oyaml -w
+```
+
 Run the following command to promote the rollout:
 ```
 kubectl argo rollouts promote rollouts-demo -n rollouts-demo
@@ -645,18 +652,6 @@ kubectl argo rollouts promote rollouts-demo -n rollouts-demo
 
 In the rollouts demo UI we should be able to see that the rollout pauses at the 25% weight until promoted, with the rest of the rollout automatically promoted after a 5 second duration between steps.
 ![rollouts-ui-canary-with-man](.images/rollouts-ui-canary-with-man.png)
-
-## Cleanup Canary rollouts demo
-```
-kubectl delete serviceaccount rollouts-demo -n rollouts-demo
-kubectl delete service rollouts-demo-preview -n rollouts-demo
-kubectl delete service rollouts-demo-active -n rollouts-demo
-kubectl delete upstream rollouts-demo-active -n rollouts-demo
-kubectl delete upstream rollouts-demo-preview -n rollouts-demo
-kubectl delete rollout rollouts-demo -n rollouts-demo
-kubectl delete vs rollouts-demo -n gloo-system
-kubectl delete rt rollouts-demo-routes -n gloo-system
-```
 
 ## Analysis Runs
 As a part of the `Rollout`, analysis can be run in the background -- while the canary is progressing through its rollout steps.
@@ -821,6 +816,20 @@ steps:
 - pause: {duration: 60}
 - setWeight: 100
 - pause: {duration: 60}
+```
+
+## Cleanup Canary rollouts demo
+```
+kubectl delete serviceaccount rollouts-demo -n rollouts-demo
+kubectl delete service rollouts-demo-preview -n rollouts-demo
+kubectl delete service rollouts-demo-active -n rollouts-demo
+kubectl delete upstream rollouts-demo-active -n rollouts-demo
+kubectl delete upstream rollouts-demo-preview -n rollouts-demo
+kubectl delete rollout rollouts-demo -n rollouts-demo
+kubectl delete analysistemplate pass -n rollouts-demo
+kubectl delete analysistemplate always-fail -n rollouts-demo
+kubectl delete vs rollouts-demo -n gloo-system
+kubectl delete rt rollouts-demo-routes -n gloo-system
 ```
 
 ## Conclusion
