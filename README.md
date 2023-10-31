@@ -4,7 +4,10 @@
 In modern software development, the ability to deploy applications swiftly and seamlessly is an important competitive advantage. This is where Argo Rollouts truly shines. By harnessing the power of Argo Rollouts, organizations can ensure a smooth and controlled transition from one version of an application to the next, minimizing downtime and reducing the risk of disruptions. This level of precision not only enhances the end-user experience but also bolsters an organization's reliability and reputation. Furthermore, Argo Rollouts empowers teams to adopt advanced deployment strategies like canary releases and blue-green deployments, allowing for safe experimentation with new features and configurations. The result? Faster innovation cycles, higher customer satisfaction, and ultimately, a stronger market position for the organization.
 
 At Solo.io, we've integrated Argo Rollouts' traffic management capabilities with Gloo Edge's advanced routing mechanisms through a supported plugin. This integration is a testament to our dedication to empowering organizations with the tools they need to succeed in the ever-evolving landscape of Kubernetes deployments. This blog provides a comprehensive guide on how to install, use, and implement various patterns for progressive delivery using Argo Rollouts and Gloo Edge.
- 
+
+## Prerequisites
+- K8s cluster deployed
+
 ## Install the argo-rollouts controller
 Install the kubectl argo-rollouts plugin as described [here](https://argoproj.github.io/argo-rollouts/installation/##kubectl-plugin-installation)
 
@@ -157,7 +160,7 @@ No problems detected.
 Skipping Gloo Instance check -- Gloo Federation not detected
 ```
 
-## Blue-green Rollout Strategy
+## Review Blue-green Rollout Strategy
 
 A Blue Green Deployment allows users to reduce the amount of time multiple versions running at the same time. This means that in a blue/green rollout that the traffic will be shifted from blue > green as soon as the green application is ready to take on traffic if `autoPromotionEnabled: true`. Additionally, a user can set the following [Configurable Features](https://argo-rollouts.readthedocs.io/en/stable/features/bluegreen/##configurable-features) listed on the upstream docs such as `autoPromotionSeconds: 20` for example
 
@@ -170,6 +173,8 @@ Something to note about this strategy is that besides providing connectivity fro
 
 ![blue-green-post-promotion](.images/blue-green-post-promotion.png)
 
+
+## Deploy and Configure the Initial Rollout
 Deploy the rollouts-demo application. The following rollout has `autoPromotionEnabled: false` to demonstrate a manual promotion process
 ```
 kubectl apply -f- <<EOF
@@ -302,7 +307,7 @@ open $(glooctl proxy url)
 We should see the Argo Rollouts Demo with blue squares loading across the screen
 ![rollouts-ui-blue](.images/rollouts-ui-blue.png)
 
-#### Promoting from blue to green
+### Promoting from blue to green
 
 Check your rollout status:
 ```
@@ -371,7 +376,7 @@ kubectl argo rollouts promote rollouts-demo -n rollouts-demo
 We should quickly see in the UI that traffic was shifted immediately from blue to green
 ![rollouts-ui-blue-green](.images/rollouts-ui-blue-green.png)
 
-## Bonus:
+### Bonus:
 If you set the Rollout strategy as follows, the promotion will happen automatically 20 seconds after the pod is marked healthy
 ```
 strategy:
@@ -382,7 +387,7 @@ strategy:
     autoPromotionSeconds: 20
 ```
 
-## Cleanup blue/green rollouts demo
+### Cleanup blue/green rollouts demo
 ```
 kubectl delete vs rollouts-demo -n gloo-system
 kubectl delete upstream rollouts-demo-active -n rollouts-demo
@@ -392,7 +397,7 @@ kubectl delete service rollouts-demo-preview -n rollouts-demo
 kubectl delete service rollouts-demo-active -n rollouts-demo
 ```
 
-## Canary Rollout Strategy
+## Review Canary Rollout Strategy
 A Canary rollout is a deployment strategy where the operator releases a new version of their application to a small percentage of the production traffic. We can use weights, pause durations, and manual promotion in order to control how our application is rolled out across the stable and canary services
 
 Similar to the above Blue/Green strategy, the Argo Rollouts Canary strategy supports the K8s API directly [basic example here](https://argo-rollouts.readthedocs.io/en/stable/features/canary/#example), as well as many examples of integrations for [Traffic Management](https://argo-rollouts.readthedocs.io/en/stable/features/traffic-management/) that allow more advanced rollout scenarios.
@@ -416,6 +421,7 @@ trafficRouting:
 
 ![canary-post-promotion](.images/canary-post-promotion.png)
 
+## Deploy and Configure the Initial Rollout
 To get started, first we can deploy the v1 of our rollouts demo which uses the `blue` image tag
 ```
 kubectl apply -f- <<EOF
@@ -627,7 +633,7 @@ steps:
 In the rollouts demo UI we should be able to see the steps and the respective weights pretty clearly in the shift from blue to green.
 ![rollouts-ui-canary](.images/rollouts-ui-canary.png)
 
-## Bonus:
+### Bonus:
 If you set the Rollout strategy steps as follows, the promotion will happen automatically every 5 seconds except for the second step (at 25%) which requires a manual promotion
 ```
 steps:
@@ -790,7 +796,7 @@ If you check the rollout status again, this time we will see the added `Analysis
 kubectl argo rollouts get rollout rollouts-demo -n rollouts-demo
 ```
 
-## Bonus exercises
+### Bonus exercise: Always Fail
 Try it again, but this time use the `always-fail` AnalysisTemplate to observe a rollback operation. Note that by using `startingStep: 3` that the `always-fail` analysistemplate will be run as step 3 starts begins, and then will roll back.
 ```
 analysis:
@@ -823,7 +829,7 @@ steps:
 - pause: {duration: 60}
 ```
 
-## Cleanup Canary rollouts demo
+### Cleanup Canary rollouts demo
 ```
 kubectl delete serviceaccount rollouts-demo -n rollouts-demo
 kubectl delete service rollouts-demo-preview -n rollouts-demo
